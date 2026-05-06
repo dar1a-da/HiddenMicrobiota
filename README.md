@@ -5,7 +5,7 @@
 Metagenomics
 
 The composition of the human microbiota is related to the state of health. The presence and representation of different bacterial species or families may correlate with certain diseases. In this work, the relationship of the human gut microbiota with arthritis was investigated. 
-Data on the intestinal microbiota were obtained from genome-wide sequencing using the shot-gun method. Further, these raw data were processed using bioinformatic tools via the SLI and python. The results of bacterial representation, functional profiling, and pipeline were obtained.
+Data on the intestinal microbiota were obtained from genome-wide sequencing using the shot-gun method. Further, these raw data were processed using bioinformatic tools via the CLI and python. The results of bacterial representation, functional profiling, and pipeline were obtained.
 
 ## Goal: 
 Search for diagnostics markers for diseases classification based on WGS human gut samples
@@ -21,29 +21,25 @@ Search for diagnostics markers for diseases classification based on WGS human gu
 - Development of a reproducible data analysis pipeline
 - Annotation and interpretation of identified features
 
-## Workflow
+## Methods
 
 ### bash
-Quality control &mdash; `FastQC`  
-Filtration &mdash; `Trimmomatic`  
-Taxonomic analysis &mdash; `Kraken2` (k-mers), `MetaPhlAn` (marker genes)  
-Feature extraction &mdash; `MetaFX`  
-Estimating the distance between metagenomes MinHash &mdash; `Mash`  
+`FastQC` was used for quality control of sequence data before and after filtration. The sequences were filtered using a `Trimmomatic` with the following parameters: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 (Remove adapters),  LEADING:3 (Remove leading low quality or N bases (below quality 3)), TRAILING:3 (Remove trailing low quality or N bases), SLIDINGWINDOW:4:20 (Scan the read with a 4-base wide sliding window, cutting when the average quality per base drops below 20), MINLEN:60 (Drop reads below 60 bases long).  
+The `Kraken 2` was used for taxonomic classification based on k-mers. Kraken 2 is a fast and memory efficient tool for taxonomic assignment of metagenomics sequencing reads. The result was a abundance table at the species. The `MetaPhlAn` was used for taxonomic classification based on marker genes. MetaPhlan is a tool for profiling the composition of microbial communities from metagenomic shotgun sequencing data. Output files contain taxon abundances are listed one clade per line, tab-separated from the clade's relative abundance in %. `MetaFX` was used for feature extraction from whole-genome metagenome sequencing data and classification of groups of samples. The analysis was performed on k-mers of size 31. The results: feature table, table of samples categories, contigs in FASTA format as features for each category. `Mash` was used for estimating the distance between metagenomes. Splits sequences into k-mers, makes a MinHash sketch, compares sketches, and gets the distance. Results: table of distance between samples.  
 
 ### python
-Preprocessing tables from Kraken2, MetaPhlan use библиотеки ?? python pandas numpy.  
-Визуализация с использованием matplotlib, seaborn.  
-Методы снижения размерности PCA, t-SNE, UMAP. 
-Machine learning scikit-learn.
-
-
+Preprocessing tables from Kraken2, MetaPhlan, Mash, MetaFX used `pandas`, `numpy`. Preprocessing includes creating metadata with sample group, selection taxonomic level.  
+The Shannon index was used to calculate alpha diversity.  
+`Matplotlib`, `seaborn` was used for visualization.  
+Methods for reduction dimensions: `PCA`, `t-SNE`, `UMAP`.  
+Machine learning (library scikit-learn) was used to train classification models. The `Random Forest` algorithm was used for the task of classifying and evaluating the features importances. Using the `SHAP` (SHapley Additive exPlanations) method, we evaluated how each feature affects the final prediction.
 
 
 ## Data
 
 The data for the analysis of the intestinal microbiome in people with rheumatoid arthritis were taken from the article Gupta "Gut microbial determinants of clinically important improvement in patients with rheumatoid arthritis". The patients were selected from Mayo Clinic (USA). Sequencing data for stool metagenomes used in this study have been deposited at NCBI’s Sequence Read Archive (SRA) data repository (BioProject number PRJNA598446) 49 samples Illumina HiSeq 4000.
 
-Metagenomes of healthy people were taken from [GMRepo](https://gmrepo.humangut.info/data).
+Metagenomes of healthy people were taken from [GMRepo](https://gmrepo.humangut.info/data). Project PRJEB28543. 48 samples.
 
 ## Results
 
