@@ -1,8 +1,9 @@
 # Hidden Matters
 
-## Introduction / short describe
+## Introduction
 
-Metagenomics
+Metagenomics studies the set of genes of all microorganisms present in an environmental sample, called a metagenome. 
+Microbial communities play a key role in maintaining human health. Metagenomic sequencing is used to describe microbial communities in individuals, which helps identify a set of human microbes and understand how changes in the human microbiota correlate with changes in health.
 
 The composition of the human microbiota is related to the state of health. The presence and representation of different bacterial species or families may correlate with certain diseases. In this work, the relationship of the human gut microbiota with arthritis was investigated. 
 Data on the intestinal microbiota were obtained from genome-wide sequencing using the shot-gun method. Further, these raw data were processed using bioinformatic tools via the CLI and python. The results of bacterial representation, functional profiling, and pipeline were obtained.
@@ -43,7 +44,31 @@ Metagenomes of healthy people were taken from [GMRepo](https://gmrepo.humangut.i
 
 ## Results
 
-Альфа разнообразие (разные таксоном аннот)
+### Taxonomic classification
+
+Top-20 species from 
+
+Kraken
+![alt text](imgs/mean_rel_abund_kraken.png) 
+MetaPhlan
+![alt text](imgs/mean_rel_abund100_metaphlan.png)
+
+### Alpha diversity
+
+Alpha diversity was estimated by the Shannon index. This is a metric for determining the degree of homogeneity of the distribution of features of objects in the sample, for estimating the species diversity of a community.
+
+$$
+H = -\sum_{i=1}^{n} p_i \log_2 p_i
+$$,
+where $p_i$ the number of features of the object.
+
+![alt text](imgs/alpha_div_all.png)
+
+The absolute index values for Kraken2 are systematically higher than for MetaPhlAn. These discrepancies are probably related to differences in the methodology of the taxonomic classification of Kraken2 and MetaPhlAn. Kraken accounts for a wider range of organisms, including unclassified potential contaminating organisms, whereas MetaPhlAn focuses on well-annotated bacterial markers and is more conservative.  
+The Mann-Whitney test was used to evaluate the statistically significant difference within the method between patients and healthy people. As a result, it was found that the difference in the Shannon index between patients and healthy people is not significant: Kraken p-value 0.808, MetaPhlAn p-value: 0.119.
+To assess the statistically significant difference between the methods, the Wilcoxon test was used, since the same sample was analyzed by two methods, the data are paired. It is shown that the difference between the methods in the Shannon index is statistically significant with a p-value of 1.67e-11.
+
+
 Методы снижения размерности
 Иерархическая кластеризация mash
 Модели
