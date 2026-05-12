@@ -57,9 +57,8 @@ MetaPhlan
 
 Alpha diversity was estimated by the Shannon index. This is a metric for determining the degree of homogeneity of the distribution of features of objects in the sample, for estimating the species diversity of a community.
 
-$$
-H = -\sum_{i=1}^{n} p_i \log_2 p_i
-$$,
+$H = -\sum_{i=1}^{n} p_i \log_2 p_i$,  
+
 where $p_i$ the number of features of the object.
 
 ![alt text](imgs/alpha_div_all.png)
