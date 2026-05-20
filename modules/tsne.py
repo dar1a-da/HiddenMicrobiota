@@ -38,6 +38,10 @@ def plot_tsne(df, meta, method,
     df_tsne["status"] = df_tsne["sample"].map(meta[group_col])
 
     # plot
+
+    palette = {"disease": "red",
+        "healthy": "green"}
+
     plt.figure(figsize=figsize)
 
     sns.scatterplot(
@@ -45,7 +49,8 @@ def plot_tsne(df, meta, method,
         x="TSNE1",
         y="TSNE2",
         hue="status",
-        s=80
+        s=80,
+        palette=palette
     )
 
     title = f"t-SNE of microbial composition ({method})"

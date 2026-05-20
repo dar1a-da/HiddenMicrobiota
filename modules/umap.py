@@ -39,6 +39,10 @@ def plot_umap(df, meta, method,
     df_umap["status"] = df_umap["sample"].map(meta[group_col])
 
     # plot
+
+    palette = {"disease": "red",
+        "healthy": "green"}
+    
     plt.figure(figsize=figsize)
 
     sns.scatterplot(
@@ -46,7 +50,8 @@ def plot_umap(df, meta, method,
         x="UMAP1",
         y="UMAP2",
         hue="status",
-        s=80
+        s=80,
+        palette=palette
     )
 
     title = f"UMAP of microbial composition ({method})"

@@ -12,11 +12,12 @@ def plot_pca(
     meta,
     method,
     group_col="group",
+    pseudocount=1e-6,
     save_dir="../results",
     figsize=(7, 6)
 ):
     # log transform
-    X_log = np.log10(df + 1e-6)
+    X_log = np.log10(df + pseudocount)
 
     # scaling
     scaler = StandardScaler()
