@@ -13,8 +13,7 @@ def plot_pca(
     method,
     group_col="group",
     save_dir="../results",
-    figsize=(7, 6),
-    pseudocount=1e-6
+    figsize=(7, 6)
 ):
     # log transform
     X_log = np.log10(df + 1e-6)
@@ -59,7 +58,7 @@ def plot_pca(
     title = f"PCA of microbial composition ({method})"
     plt.title(title)
 
-    save_path = f"../results/pca_{method.lower()}.png"
+    save_path = f"{save_dir}/pca_{method.lower()}.png"
 
     plt.savefig(save_path, dpi=300, bbox_inches="tight")
     plt.show()
