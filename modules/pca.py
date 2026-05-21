@@ -6,7 +6,6 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
 def plot_pca(
     df,
     meta,
@@ -14,34 +13,49 @@ def plot_pca(
     group_col="group",
     pseudocount=1e-6,
     save_dir="../results",
-    figsize=(7, 6)
+    figsize=(7, 6),
+    distance_matrix=False
 ):
-    # log transform
-    X_log = np.log10(df + pseudocount)
 
-    # scaling
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X_log)
+    # distance matrix (f.e. Mash)
+    if distance_matrix:
+        X_scaled = df
+        sample_index = meta.index
+
+    # abundance table
+    else:
+        X = df.T.astype(float)
+
+        if method.lower() == "metaphlan":
+            X = X / 100
+
+        # log transform
+        X_log = np.log10(X + pseudocount)
+
+        # scaling
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X_log)
+
+        sample_index = X.index
 
     # PCA
     pca = PCA(n_components=2)
+
     X_pca = pca.fit_transform(X_scaled)
 
-    # DF for plot
+    # dataframe for plot
     pca_df = pd.DataFrame(
         X_pca,
         columns=["PC1", "PC2"],
-        index=df.index
+        index=sample_index
     )
 
-    pca_df["sample"] = pca_df.index
-    pca_df["status"] = pca_df["sample"].map(meta[group_col])
+    pca_df["status"] = pca_df.index.map(meta[group_col])
 
     # plot
-
     palette = {"disease": "red",
-        "healthy": "green"}
-    
+               "healthy": "green"}
+
     plt.figure(figsize=figsize)
 
     sns.scatterplot(
@@ -49,19 +63,19 @@ def plot_pca(
         x="PC1",
         y="PC2",
         hue="status",
-        s=80, 
+        s=80,
         palette=palette
     )
 
     plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.1f}%)")
     plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.1f}%)")
 
-    title = f"PCA of microbial composition ({method})"
-    plt.title(title)
+    plt.title(f"PCA of microbial composition ({method})")
 
     save_path = f"{save_dir}/pca_{method.lower()}.png"
 
     plt.savefig(save_path, dpi=300, bbox_inches="tight")
+
     plt.show()
 
     return pca_df, pca
