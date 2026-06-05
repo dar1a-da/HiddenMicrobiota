@@ -1,20 +1,11 @@
 # Hidden Matters
 
-Repository structure:  
-`data` - data received after the launch of programs and used for further analysis;  
-`imgs` - images from the README text;  
-`scripts` - scripts used on the server to process raw sequencing data;  
-`notebooks` - notebooks used for data analysis after scripts;  
-`modules` - auxiliary functions for notebooks;  
-`results` - images obtained as a result of analysis in notebooks.
-
 ## Introduction
 
-Metagenomics studies the set of genes of all microorganisms present in an environmental sample, called a metagenome. 
-Microbial communities play a key role in maintaining human health. Metagenomic sequencing is used to describe microbial communities in individuals, which helps identify a set of human microbes and understand how changes in the human microbiota correlate with changes in health.
+The human gut microbiota plays an important role in the organism's metabolism, regulation of immunity, and maintenance of overall health.  Changes in gut microbial communities may be associated with various diseases, including autoimmune and inflammatory disorders. Among them, rheumatoid arthritis (RA) is a chronic autoimmune disease characterized by systemic inflammation and joint damage. Changes in the composition and function of the gut microbiome can contribute to the development and progression of RA. Shotgun metagenomic sequencing makes it possible to identify taxa of microorganisms, functional pathways, and potential signs associated with the disease.
 
-The composition of the human microbiota is related to the state of health. The presence and representation of different bacterial species or families may correlate with certain diseases. In this work, the relationship of the human gut microbiota with arthritis was investigated. 
-Data on the intestinal microbiota were obtained from genome-wide sequencing using the shot-gun method. Further, these raw data were processed using bioinformatic tools via the CLI and python. The results of bacterial representation, functional profiling, and pipeline were obtained.
+In this study, we investigated the relationship between the human gut microbiota and rheumatoid arthritis using publicly available shotgun metagenomic sequencing data. Raw sequencing reads were processed using a bioinformatics pipeline implemented through command-line tools and Python-based analyses. 
+Taxonomic and k-mer-based approaches were applied  their ability to identify microbial signatures associated with rheumatoid arthritis.
 
 ## Goal: 
 Search for diagnostics markers for diseases classification based on WGS human gut samples
@@ -30,29 +21,43 @@ Search for diagnostics markers for diseases classification based on WGS human gu
 - Development of a reproducible data analysis pipeline
 - Annotation and interpretation of identified features
 
+Repository structure:  
+`data` - data received after the launch of programs and used for further analysis;  
+`imgs` - images from the README text;  
+`scripts` - scripts used on the server to process raw sequencing data;  
+`notebooks` - notebooks used for data analysis after scripts;  
+`modules` - auxiliary functions for notebooks;  
+`results` - images obtained as a result of analysis in notebooks.
+
 ## Methods
 
 ### Preprocessing
-Data were downloaded from site https://www.ncbi.nlm.nih.gov/sra by project number using `SRA Toolkit`. `FastQC` was used for quality control of sequence data before and after filtration. The sequences were filtered using a `Trimmomatic` with the following parameters: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 (Remove adapters),  LEADING:3 (Remove leading low quality or N bases (below quality 3)), TRAILING:3 (Remove trailing low quality or N bases), SLIDINGWINDOW:4:20 (Scan the read with a 4-base wide sliding window, cutting when the average quality per base drops below 20), MINLEN:60 (Drop reads below 60 bases long).  
+Sequencing data were downloaded from the [NCBI Sequence Read Archive (SRA)](https://www.ncbi.nlm.nih.gov/sra) using the `SRA Toolkit` and the corresponding BioProject accession numbers.  
+Sequence quality was assessed before and after filtering using `FastQC`.  
+Low-quality reads and adapter sequences were removed using `Trimmomatic`.  
 [sra](scripts/01_download_metagenomes.sh), [fastqc1](scripts/02_quality.sh), [fastqc2](scripts/02_quality_res.py), [trim](scripts/03_filter.sh)
 
 ### Taxonomic classification
-The `Kraken2` was used for taxonomic classification based on k-mers [2]. Kraken2 is a fast and memory efficient tool for taxonomic assignment of metagenomics sequencing reads. The result was a abundance table at the species. The `MetaPhlAn4` was used for taxonomic classification based on marker genes. MetaPhlAn4 is a tool for profiling the composition of microbial communities from metagenomic shotgun sequencing data [3]. Output files contain taxon abundances are listed one clade per line, tab-separated from the clade's relative abundance in %.  
+`Kraken2` was used for taxonomic classification based on k-mers matching [2]. Kraken2 is a fast and memory-efficient tool for assigning taxonomic labels to metagenomic sequencing reads. The output consisted of species-level abundance tables.  
+`MetaPhlAn4` was used for taxonomic profiling based on clade-specific marker genes [3]. MetaPhlAn4 enables the characterization of microbial community composition from shotgun metagenomic sequencing data. The output files contain taxonomic abundances, with each clade reported  together with its relative abundance (%).  
 [kraken1](scripts/04_kraken.sh), [kraken2](scripts/04_kraken.py), [metaphlan](scripts/04_metaphlan.sh)
 
 ### Features
-`MetaFX` was used for feature extraction from whole-genome metagenome sequencing data and classification of groups of samples [4]. The analysis was performed on k-mers of size 31. The results: feature table, table of samples categories, contigs in FASTA format as features for each category. `Mash` was used for estimating the distance between metagenomes. Splits sequences into k-mers, makes a MinHash sketch, compares sketches, and gets the distance. Results: table of distance between samples.  
+`MetaFX` was used to extract features from whole-genome metagenomic sequencing data and to classify sample groups [4]. Feature extraction was performed using 31-kmers. The resulting outputs included a feature table, sample category assignments, and FASTA files containing category-specific contigs.  
+`Mash` was used to estimate pairwise distances between metagenomes. It splits sequences into k-mers, generates MinHash sketches, and computes distances based on sketch similarity. The output was a pairwise distance matrix for all samples.  
 [metafx](scripts/06_metafx.sh), [mash](scripts/05_mash_dist.sh)
 
 ### Classification
-Preprocessing tables from Kraken2, MetaPhlan, Mash, MetaFX used `pandas`, `numpy`. Preprocessing includes creating metadata with sample group, selection taxonomic level. The Shannon index was used to calculate alpha diversity. `Matplotlib`, `seaborn` was used for visualization. Methods for reduction dimensions: `PCA`, `t-SNE`, `UMAP`. Machine learning (library scikit-learn) was used to train classification models. The `Random Forest` and `Logistic regression` algorithms were used for the task of classifying and evaluating the features importances.  
+The preprocessing of the tables generated by Kraken2, MetaPhlAn4, Mash, and MetaFX was performed using the `pandas` and `numpy` libraries. The preprocessing steps included the creation of metadata with the assignment of sample groups and the selection of a taxonomic level for analysis.   
+Alpha diversity was assessed using the Shannon index. Data visualization was performed using `matplotlib` and `seaborn`.  
+Dimensionality reduction methods, including `PCA`, `t-SNE`, and `UMAP`, were used to identify the main variables in the data.  
+Machine learning methods from the scikit-learn library were used to train classification models. `Random forest` and `logistic regression` algorithms were used to classify samples and assess the importance of features.  
 Analitytic: [kraken](notebooks/kraken_analytic.ipynb), [metaphlan](notebooks/metaphlan_analytic.ipynb), [metafx](notebooks/metafx_analytic.ipynb), [mash](notebooks/mash_analytic.ipynb)
 
 ## Data
 
-The data for the analysis of the intestinal microbiome in people with rheumatoid 
-arthritis were taken from the article Gupta "Gut microbial determinants of clinically important improvement in patients with rheumatoid arthritis" [1]. The patients were selected from Mayo Clinic (USA). Sequencing data for stool metagenomes used in this study have been deposited at NCBI’s Sequence Read Archive (SRA) data repository (BioProject number PRJNA598446) 49 samples Illumina HiSeq 4000.  
-Metagenomes of healthy people were taken from [GMRepo](https://gmrepo.humangut.info/data). Project PRJEB28543. 48 samples.
+Gut microbiome data from patients with rheumatoid arthritis (RA) were obtained from the study by Gupta et al., "Gut microbial determinants of clinically important improvement in patients with rheumatoid arthritis" [1]. A total of 49 samples were included in the analysis.  
+Metagenomic data from healthy individuals were obtained from the [GMRepo](https://gmrepo.humangut.info/data) and corresponded to BioProject PRJEB28543. A total of 48 samples were included in the study.
 
 ## Results
 
@@ -72,10 +77,6 @@ MetaPhlan
 ### Alpha diversity
 
 Alpha diversity was estimated by the Shannon index. This is a metric for determining the degree of homogeneity of the distribution of features of objects in the sample, for estimating the species diversity of a community.
-
-$H = -\sum_{i=1}^{n} p_i \log_2 p_i$,  
-
-where $p_i$ the number of features of the object.
 
 <img src="imgs/alpha_div_all.png" width="50%">
 
