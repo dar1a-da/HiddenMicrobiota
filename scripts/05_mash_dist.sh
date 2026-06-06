@@ -1,10 +1,3 @@
-mkdir mash
-wget https://github.com/marbl/Mash/releases/download/v2.3/mash-Linux64-v2.3.tar
-tar -xvf mash-Linux64-v2.3.tar
-./mash
-
-MASH=/path/to/mash/mash-Linux64-v2.3/mash
-
 mkdir -p mash_sketches
 
 for r1 in *_R1.fq.gz

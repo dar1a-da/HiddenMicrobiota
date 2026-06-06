@@ -1,7 +1,12 @@
-wget --output-document sratoolkit.tar.gz https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz
-tar -vxzf sratoolkit.tar.gz
-export PATH=$PWD/sratoolkit.3.0.0-ubuntu64/bin:$PATH
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -i|--input)
+            INPUT="$2"
+            shift 2
+            ;;
+    esac
+done
 
-while read line; do
-  fasterq-dump -e 8 ${line}
-done<Accession_list.txt
+while read -r line; do
+    sratoolkit.3.4.1-ubuntu64/bin/fasterq-dump -e 8 "$line"
+done < "$INPUT"
