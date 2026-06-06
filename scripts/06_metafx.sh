@@ -1,24 +1,5 @@
-# Installation
-
-micromamba create -n metafx_env -c conda-forge -c bioconda python=3.8
-micromamba activate metafx_env
-micromamba install -c conda-forge -c bioconda \
-    numpy=1.24 \
-    pandas=1.5 \
-    scikit-learn=1.2 \
-    matplotlib=3.7 \
-    joblib \
-    ete3=3.1.3 \
-    xgboost
-
-git clone https://github.com/ctlab/metafx
-cd metafx
-
-export PATH=$PWD/bin:$PWD/bin/metafx-modules:$PWD/bin/metafx-scripts:$PATH
-
 # Creation sample_list_train.txt
-
-for f in *_merged.fastq.gz
+for f in *.fastq.gz
 do
     abs="$(pwd)/$f"
     if [[ $f == ERR* ]]; then
@@ -43,10 +24,10 @@ metafx cv -t 2 -w wd_cv_train -f wd_unique_train/feature_table.tsv -i wd_unique_
 
 # Process new samples with hidden categories
 
-ls *_merged.fastq.gz | sed 's|^|/mnt/tank/scratch/dchekanova/data_paper/all/test/|' > test_files.txt
+ls *.fastq.gz | sed 's|^|/test/|' > test_files.txt
 
 metafx calc_features -t 16 -m 128G -w wd_new_samples -k 31 -d wd_unique_train \
-        -i $(cat /mnt/tank/scratch/dchekanova/data_paper/all/test/test_files.txt)
+        -i $(cat /test/test_files.txt)
 
 # Get prediction results for new samples
 

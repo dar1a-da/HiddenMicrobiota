@@ -3,7 +3,7 @@
 import os
 import pandas as pd
 
-REPORT_DIR = 'kraken/kraken_reports'
+REPORT_DIR = 'kraken_results/kraken_reports'
 RANK='S'
 
 tables = []

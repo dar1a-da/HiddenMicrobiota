@@ -1,10 +1,3 @@
-# Installation
-
-micromamba create -n metaphlan4 -c conda-forge -c bioconda metaphlan=4 -y
-micromamba activate metaphlan4
-
-# Running on all samples
-
 mkdir -p metaphlan_results
 
 for f in trimmed/*_1_paired.fq.gz

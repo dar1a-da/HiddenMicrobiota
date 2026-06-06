@@ -1,20 +1,11 @@
 # Hidden Matters
 
-Repository structure:  
-`data` - data received after the launch of programs and used for further analysis;  
-`imgs` - images from the README text;  
-`scripts` - scripts used on the server to process raw sequencing data;  
-`notebooks` - notebooks used for data analysis after scripts;  
-`modules` - auxiliary functions for notebooks;  
-`results` - images obtained as a result of analysis in notebooks.
-
 ## Introduction
 
-Metagenomics studies the set of genes of all microorganisms present in an environmental sample, called a metagenome. 
-Microbial communities play a key role in maintaining human health. Metagenomic sequencing is used to describe microbial communities in individuals, which helps identify a set of human microbes and understand how changes in the human microbiota correlate with changes in health.
+The human gut microbiota plays an important role in the organism's metabolism, regulation of immunity, and maintenance of overall health.  Changes in gut microbial communities may be associated with various diseases, including autoimmune and inflammatory disorders. Among them, rheumatoid arthritis (RA) is a chronic autoimmune disease characterized by systemic inflammation and joint damage. Changes in the composition and function of the gut microbiome can contribute to the development and progression of RA. Shotgun metagenomic sequencing makes it possible to identify taxa of microorganisms, functional pathways, and potential signs associated with the disease.
 
-The composition of the human microbiota is related to the state of health. The presence and representation of different bacterial species or families may correlate with certain diseases. In this work, the relationship of the human gut microbiota with arthritis was investigated. 
-Data on the intestinal microbiota were obtained from genome-wide sequencing using the shot-gun method. Further, these raw data were processed using bioinformatic tools via the CLI and python. The results of bacterial representation, functional profiling, and pipeline were obtained.
+In this study, we investigated the relationship between the human gut microbiota and rheumatoid arthritis using publicly available shotgun metagenomic sequencing data. Raw sequencing reads were processed using a bioinformatics pipeline implemented through command-line tools and Python-based analyses. 
+Taxonomic and k-mer-based approaches were applied  their ability to identify microbial signatures associated with rheumatoid arthritis.
 
 ## Goal: 
 Search for diagnostics markers for diseases classification based on WGS human gut samples
@@ -30,25 +21,50 @@ Search for diagnostics markers for diseases classification based on WGS human gu
 - Development of a reproducible data analysis pipeline
 - Annotation and interpretation of identified features
 
-## Methods
+## Prerequisites
+- Linux operating system (tested on Ubuntu 22.04 LTS)
+- Python >= 3.10
+- Micromamba  
 
-### bash
-`FastQC` was used for quality control of sequence data before and after filtration. The sequences were filtered using a `Trimmomatic` with the following parameters: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 (Remove adapters),  LEADING:3 (Remove leading low quality or N bases (below quality 3)), TRAILING:3 (Remove trailing low quality or N bases), SLIDINGWINDOW:4:20 (Scan the read with a 4-base wide sliding window, cutting when the average quality per base drops below 20), MINLEN:60 (Drop reads below 60 bases long).  
-The `Kraken2` was used for taxonomic classification based on k-mers. Kraken2 is a fast and memory efficient tool for taxonomic assignment of metagenomics sequencing reads. The result was a abundance table at the species. The `MetaPhlAn4` was used for taxonomic classification based on marker genes. MetaPhlAn4 is a tool for profiling the composition of microbial communities from metagenomic shotgun sequencing data. Output files contain taxon abundances are listed one clade per line, tab-separated from the clade's relative abundance in %. `MetaFX` was used for feature extraction from whole-genome metagenome sequencing data and classification of groups of samples. The analysis was performed on k-mers of size 31. The results: feature table, table of samples categories, contigs in FASTA format as features for each category. `Mash` was used for estimating the distance between metagenomes. Splits sequences into k-mers, makes a MinHash sketch, compares sketches, and gets the distance. Results: table of distance between samples.  
-
-### python
-Preprocessing tables from Kraken2, MetaPhlan, Mash, MetaFX used `pandas`, `numpy`. Preprocessing includes creating metadata with sample group, selection taxonomic level.  
-The Shannon index was used to calculate alpha diversity.  
-`Matplotlib`, `seaborn` was used for visualization.  
-Methods for reduction dimensions: `PCA`, `t-SNE`, `UMAP`.  
-Machine learning (library scikit-learn) was used to train classification models. The `Random Forest` and `Logistic regression` algorithms were used for the task of classifying and evaluating the features importances.
+## Repository structure:  
+`data` - data received after the launch of programs and used for further analysis;  
+`imgs` - images from the README text;  
+`scripts` - scripts used on the server to process raw sequencing data;  
+`notebooks` - notebooks used for data analysis after scripts;  
+`modules` - auxiliary functions for notebooks;  
+`requirements` - files for deploying environments;  
+`instruction` - description of scripts execution;  
+`results` - images obtained as a result of analysis in notebooks.
 
 ## Data
+Gut microbiome data from patients with rheumatoid arthritis (RA) were obtained from the study by Gupta et al., "Gut microbial determinants of clinically important improvement in patients with rheumatoid arthritis" [1]. A total of 49 samples were included in the analysis.  
+Metagenomic data from healthy individuals were obtained from the [GMRepo](https://gmrepo.humangut.info/data) and corresponded to BioProject PRJEB28543. A total of 48 samples were included in the study.
 
-The data for the analysis of the intestinal microbiome in people with rheumatoid 
-arthritis were taken from the article Gupta "Gut microbial determinants of clinically important improvement in patients with rheumatoid arthritis". The patients were selected from Mayo Clinic (USA). Sequencing data for stool metagenomes used in this study have been deposited at NCBI’s Sequence Read Archive (SRA) data repository (BioProject number PRJNA598446) 49 samples Illumina HiSeq 4000.
+## Methods
+A detailed description of scripts execution is described in [instructions.md](instructions.md).
 
-Metagenomes of healthy people were taken from [GMRepo](https://gmrepo.humangut.info/data). Project PRJEB28543. 48 samples.
+### Preprocessing
+Sequencing data were downloaded from the [NCBI Sequence Read Archive (SRA)](https://www.ncbi.nlm.nih.gov/sra) using the `SRA Toolkit` and the corresponding BioProject accession numbers.  
+Sequence quality was assessed before and after filtering using `FastQC`.  
+Low-quality reads and adapter sequences were removed using `Trimmomatic`.  
+[sra](scripts/01_download_metagenomes.sh), [fastqc1](scripts/02_quality.sh), [fastqc2](scripts/02_quality_res.py), [trim](scripts/03_filter.sh)
+
+### Taxonomic classification
+`Kraken2` was used for taxonomic classification based on k-mers matching [2]. Kraken2 is a fast and memory-efficient tool for assigning taxonomic labels to metagenomic sequencing reads. The output consisted of species-level abundance tables.  
+`MetaPhlAn4` was used for taxonomic profiling based on clade-specific marker genes [3]. MetaPhlAn4 enables the characterization of microbial community composition from shotgun metagenomic sequencing data. The output files contain taxonomic abundances, with each clade reported  together with its relative abundance (%).  
+[kraken1](scripts/04_kraken.sh), [kraken2](scripts/04_kraken.py), [metaphlan](scripts/04_metaphlan.sh)
+
+### Features
+`MetaFX` was used to extract features from whole-genome metagenomic sequencing data and to classify sample groups [4]. Feature extraction was performed using 31-kmers. The resulting outputs included a feature table, sample category assignments, and FASTA files containing category-specific contigs.  
+`Mash` was used to estimate pairwise distances between metagenomes. It splits sequences into k-mers, generates MinHash sketches, and computes distances based on sketch similarity. The output was a pairwise distance matrix for all samples.  
+[metafx](scripts/06_metafx.sh), [mash](scripts/05_mash_dist.sh)
+
+### Classification
+The preprocessing of the tables generated by Kraken2, MetaPhlAn4, Mash, and MetaFX was performed using the `pandas` and `numpy` libraries. The preprocessing steps included the creation of metadata with the assignment of sample groups and the selection of a taxonomic level for analysis.   
+Alpha diversity was assessed using the Shannon index. Data visualization was performed using `matplotlib` and `seaborn`.  
+Dimensionality reduction methods, including `PCA`, `t-SNE`, and `UMAP`, were used to identify the main variables in the data.  
+Machine learning methods from the scikit-learn library were used to train classification models. `Random forest` and `logistic regression` algorithms were used to classify samples and assess the importance of features.  
+Analitytic: [kraken](notebooks/kraken_analytic.ipynb), [metaphlan](notebooks/metaphlan_analytic.ipynb), [metafx](notebooks/metafx_analytic.ipynb), [mash](notebooks/mash_analytic.ipynb)
 
 ## Results
 
@@ -56,11 +72,11 @@ Metagenomes of healthy people were taken from [GMRepo](https://gmrepo.humangut.i
 
 Top-20 species from 
 
-Kraken
+#### Kraken
 
 <img src="imgs/mean_rel_abund_kraken.png" width="80%">
 
-MetaPhlan
+#### MetaPhlAn
 
 <img src="imgs/mean_rel_abund100_metaphlan.png" width="80%">
 <!-- ![alt text 10%](imgs/mean_rel_abund100_metaphlan.png) -->
@@ -68,10 +84,6 @@ MetaPhlan
 ### Alpha diversity
 
 Alpha diversity was estimated by the Shannon index. This is a metric for determining the degree of homogeneity of the distribution of features of objects in the sample, for estimating the species diversity of a community.
-
-$H = -\sum_{i=1}^{n} p_i \log_2 p_i$,  
-
-where $p_i$ the number of features of the object.
 
 <img src="imgs/alpha_div_all.png" width="50%">
 
@@ -81,35 +93,41 @@ To assess the statistically significant difference between the methods, the Wilc
 
 ### Beta diversity
 
-To assess the differences between the samples, the tool Mash using the MinHash method was used. The Mash function returns the estimate of the Jacquard index, which is the proportion of total k-measures. A low value of Mash distance means a more similar composition of sequences, a high value means a more different one.
+To assess the differences between the samples, the tool Mash using the MinHash method was used. The Mash function returns the estimate of the Jacquard index, which is the proportion of total k-mers. A low value of Mash distance means a more similar composition of sequences, a high value means a more different one.
 
 <img src="imgs/Mash_dendrogram.png" width="90%">
 
 ### Feature importance
+MetaFX identified 9587 features associated with the rheumatoid arthritis group and 4014 features associated with the healthy group. The contigs generated by MetaFX were filtered by length (>100 nucleotides) and ranked according to their importance scores obtained from the Random Forest model. Contigs with the highest feature importance values were selected for further analysis.  
+Random Forest and Logistic Regression models were applied to the species abundance tables generated by the Kraken2 and MetaPhlAn taxonomic profiling pipelines. The most informative bacterial species were identified based on feature importance scores and model coefficients.  
+For biological interpretation, we focused on bacterial taxa that were consistently identified as important across multiple analytical approaches and classification models. The bacterial species repeatedly detected in independent analyses were considered the most robust candidate microbial markers associated with rheumatoid arthritis.
 
-The following microorgasms turned out to be important features obtained as a result of the Random Forest model from MetaFX, as well as extracted after applying Random Forest and logistic regression after the Kraken2, MetaPhlan taxonomic annotation: *Segatella copri*, *Blautia wexlerae*, *Clostridium*, *Bacteroides*, *Eggerthella lenta*. Bacteria of the genus *Blautia* are associated with the production of short-chain fatty acids, which have a positive effect on intestinal health and immunity. While bacteria of the genus *Segatella* are associated with markers of systemic inflammation and migration of bacterial products into the joint space.Bacteria of the genera *Clostridia* and *Bacteroides fragilis* are noted as protective. *Eggerthella lenta* and *Collinsella aerofaciens* may increase intestinal permeability.
+### Biological interpretation
+Several microbial taxa were consistently identified as important features across different analytical approaches. In particular, the Random Forest model applied to MetaFX-derived features, as well as Random Forest and Logistic Regression models trained on taxonomic profiles generated by Kraken2 and MetaPhlAn, highlighted the following taxa: *Segatella copri*, *Blautia wexlerae*, *Clostridium* spp., *Bacteroides* spp., and *Eggerthella lenta*.  
+These microorganisms have previously been implicated in host immune regulation and rheumatoid arthritis. Members of the genus *Blautia* are known producers of short-chain fatty acids, which contribute to intestinal homeostasis and modulation of immune responses. *Segatella copri* is a common inhabitant of the human gut microbiome and has been associated with systemic inflammation and the translocation of microbial products that may contribute to joint inflammation [5]. Certain members of the genera *Clostridium* and *Bacteroides*, including *Bacteroides fragilis*, have been reported to exert protective and immunomodulatory effects [6]. In contrast, *Eggerthella lenta* has been associated with increased intestinal permeability and may contribute to disease pathogenesis [7].  
+The repeated identification of these taxa across multiple computational approaches suggests that they represent robust microbial signatures associated with rheumatoid arthritis.
 
 
 ## Bibliography
 
-Gupta, V.K., Cunningham, K.Y., Hur, B. et al. Gut microbial determinants of clinically important improvement in patients with rheumatoid arthritis. Genome Med 13, 149 (2021). https://doi.org/10.1186/s13073-021-00957-0
+1. Gupta, V.K., Cunningham, K.Y., Hur, B. et al. Gut microbial determinants of clinically important improvement in patients with rheumatoid arthritis. Genome Med 13, 149 (2021). https://doi.org/10.1186/s13073-021-00957-0
 
-Wood, D.E., Salzberg, S.L. Kraken: ultrafast metagenomic sequence classification using exact alignments. Genome Biol 15, R46 (2014). https://doi.org/10.1186/gb-2014-15-3-r46
+2. Wood, D.E., Salzberg, S.L. Kraken: ultrafast metagenomic sequence classification using exact alignments. Genome Biol 15, R46 (2014). https://doi.org/10.1186/gb-2014-15-3-r46
 
-Blanco-Míguez, A., Beghini, F., Cumbo, F. et al. Extending and improving metagenomic taxonomic profiling with uncharacterized species using MetaPhlAn 4. Nat Biotechnol 41, 1633–1644 (2023). https://doi.org/10.1038/s41587-023-01688-w
+3. Blanco-Míguez, A., Beghini, F., Cumbo, F. et al. Extending and improving metagenomic taxonomic profiling with uncharacterized species using MetaPhlAn 4. Nat Biotechnol 41, 1633–1644 (2023). https://doi.org/10.1038/s41587-023-01688-w
 
-Artem Ivanov, Vladimir Popov, Maxim Morozov, Evgenii Olekhnovich, Vladimir Ulyantsev, MetaFX: feature extraction from whole-genome metagenomic sequencing data, Bioinformatics, Volume 42, Issue 2, February 2026, btag018, https://doi.org/10.1093/bioinformatics/btag018
+4. Artem Ivanov, Vladimir Popov, Maxim Morozov, Evgenii Olekhnovich, Vladimir Ulyantsev, MetaFX: feature extraction from whole-genome metagenomic sequencing data, Bioinformatics, Volume 42, Issue 2, February 2026, btag018, https://doi.org/10.1093/bioinformatics/btag018
 
-Sala-Climent M, Bu K, Coras R, Cedeno M, Zuffa S, Murillo-Saich J, Mannochio-Russo H, Allaband C, Hose MK, Quan A, Choi SI, Nguyen K, Golshan S, Blank RB, Holt T, Lane NE, Knight R, Scher J, Dorrestein P, Clemente J, Guma M. Targeted Microbial Shifts and Metabolite Profiles Were Associated with Clinical Response to an Anti-Inflammatory Diet in Osteoarthritis. Nutrients. 2025 Aug 22;17(17):2729. doi: 10.3390/nu17172729. PMID: 40944120; PMCID: PMC12430150.
+5. Sala-Climent M, Bu K, Coras R, Cedeno M, Zuffa S, Murillo-Saich J, Mannochio-Russo H, Allaband C, Hose MK, Quan A, Choi SI, Nguyen K, Golshan S, Blank RB, Holt T, Lane NE, Knight R, Scher J, Dorrestein P, Clemente J, Guma M. Targeted Microbial Shifts and Metabolite Profiles Were Associated with Clinical Response to an Anti-Inflammatory Diet in Osteoarthritis. Nutrients. 2025 Aug 22;17(17):2729. doi: 10.3390/nu17172729. PMID: 40944120; PMCID: PMC12430150.
 
-Scher JU, Abramson SB. The microbiome and rheumatoid arthritis. Nat Rev Rheumatol. 2011 Aug 23;7(10):569-78. doi: 10.1038/nrrheum.2011.121. PMID: 21862983; PMCID: PMC3275101.
+6. Scher JU, Abramson SB. The microbiome and rheumatoid arthritis. Nat Rev Rheumatol. 2011 Aug 23;7(10):569-78. doi: 10.1038/nrrheum.2011.121. PMID: 21862983; PMCID: PMC3275101.
 
-Dong Y, Yao J, Deng Q, Li X, He Y, Ren X, Zheng Y, Song R, Zhong X, Ma J, Shan D, Lv F, Wang X, Yuan R, She G. Relationship between gut microbiota and rheumatoid arthritis: A bibliometric analysis. Front Immunol. 2023 Mar 1;14:1131933. doi: 10.3389/fimmu.2023.1131933. PMID: 36936921; PMCID: PMC10015446.s
+7. Dong Y, Yao J, Deng Q, Li X, He Y, Ren X, Zheng Y, Song R, Zhong X, Ma J, Shan D, Lv F, Wang X, Yuan R, She G. Relationship between gut microbiota and rheumatoid arthritis: A bibliometric analysis. Front Immunol. 2023 Mar 1;14:1131933. doi: 10.3389/fimmu.2023.1131933. PMID: 36936921; PMCID: PMC10015446.s
 
 [FastQC](https://github.com/s-andrews/fastqc)  
 [Trimmomatic](https://github.com/usadellab/trimmomatic)  
-[Kraken 2](https://github.com/DerrickWood/kraken2)  
-[Metaphlan](https://github.com/biobakery/MetaPhlAn)  
+[Kraken2](https://github.com/DerrickWood/kraken2)  
+[MetaPhlAn](https://github.com/biobakery/MetaPhlAn)  
 [MetaFX](https://github.com/ctlab/metafx)  
 [Mash](https://mash.readthedocs.io/en/latest/)
 
